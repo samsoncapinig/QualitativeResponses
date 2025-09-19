@@ -1,1 +1,71 @@
-pip install -r requirements.txt
+# Training Feedback Summarizer — Streamlit
+
+This Streamlit app allows you to upload CSV/XLSX files with qualitative responses from training evaluations. It focuses on summarizing feedback around two guiding questions:
+
+1. **What went well during the training?**
+2. **What can be improved in the conduct of training?**
+
+The app extracts major themes using TF-IDF keyword ranking and displays representative participant responses in bullet form. You can also export the generated summaries.
+
+---
+
+## Features
+- Upload CSV or Excel files with qualitative responses.
+- Select columns corresponding to the two guiding questions.
+- Automatic cleaning of responses (removes blanks, short fillers, symbols).
+- Theme extraction using TF-IDF keyword ranking.
+- Bullet-style summaries with representative sample responses.
+- Download summaries as TXT or CSV.
+
+---
+
+## Installation
+
+1. Clone or download this repository.
+2. Install dependencies:
+   ```bash
+   pip install streamlit pandas scikit-learn
+   ```
+3. Save the script as `streamlit_training_feedback_app.py`.
+
+---
+
+## Usage
+
+Run the app with:
+```bash
+streamlit run streamlit_training_feedback_app.py
+```
+
+Steps inside the app:
+1. Upload your CSV/XLSX file in the sidebar.
+2. Map dataset columns to the guiding questions:
+   - Select a column for **What went well** responses.
+   - Select a column for **What can be improved** responses.
+3. Adjust settings for number of themes and examples.
+4. View bullet-style summaries.
+5. Download the summary as TXT or CSV.
+
+---
+
+## Example Dataset Columns
+- `Q14_Learnings` → What went well
+- `Q15_For improvement` → What can be improved
+
+---
+
+## Notes
+- The app uses TF-IDF to extract the most important keywords and phrases.
+- Representative examples are displayed for each theme.
+- Long responses are truncated to keep summaries concise.
+
+---
+
+## Export Options
+- **TXT**: A plain-text summary.
+- **CSV**: Each summary line in a CSV row.
+
+---
+
+## License
+This project is open-source and free to use for educational and organizational purposes.
