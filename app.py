@@ -47,9 +47,14 @@ if uploaded_files:
 
     st.subheader("✅ Positive Feedback (Prevailing Responses)")
     if positive_feedback_clean:
-        positive_summary = "\n".join([f"- {item} ({count} mentions)" for item, count in positive_counter.most_common(10)])
-        st.code(positive_summary, language="text")  # copy button enabled
+        for item, count in positive_counter.most_common(10):
+            st.write(f"- {item} ({count} mentions)")
     else:
         st.write("No positive feedback provided.")
 
     st.subheader("⚠️ Areas for Improvement (Prevailing Responses)")
+    if improvement_feedback_clean:
+        for item, count in improvement_counter.most_common(10):
+            st.write(f"- {item} ({count} mentions)")
+    else:
+        st.write("No improvement feedback provided.")
