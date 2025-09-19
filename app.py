@@ -1,71 +1,60 @@
-# Training Feedback Summarizer — Streamlit
+import streamlit as st
+import pandas as pd
+from collections import Counter
+import re
 
-This Streamlit app allows you to upload CSV/XLSX files with qualitative responses from training evaluations. It focuses on summarizing feedback around two guiding questions:
+st.title("Training Feedback Summary App")
 
-1. **What went well during the training?**
-2. **What can be improved in the conduct of training?**
+st.write("""
+Upload your CSV file(s) containing qualitative responses.  
+The app will summarize the most common responses into two categories:  
+1. Positive feedback  
+2. Areas for improvement
+""")
 
-The app extracts major themes using TF-IDF keyword ranking and displays representative participant responses in bullet form. You can also export the generated summaries.
+uploaded_files = st.file_uploader(
+    "Upload CSV files",
+    type=["csv"],
+    accept_multiple_files=True
+)
 
----
+def preprocess_text(text):
+    if pd.isna(text):
+        return ""
+    text = str(text).lower()
+    text = re.sub(r"[^a-zA-Z0-9\s]", "", text)  # remove punctuation
+    return text.strip()
 
-## Features
-- Upload CSV or Excel files with qualitative responses.
-- Select columns corresponding to the two guiding questions.
-- Automatic cleaning of responses (removes blanks, short fillers, symbols).
-- Theme extraction using TF-IDF keyword ranking.
-- Bullet-style summaries with representative sample responses.
-- Download summaries as TXT or CSV.
+if uploaded_files:
+    dataframes = [pd.read_csv(file) for file in uploaded_files]
+    df = pd.concat(dataframes, ignore_index=True)
 
----
+    # Extract last 3 columns (Insights, Learnings, For improvement)
+    qual_cols = df.iloc[:, -3:]
+    qual_cols.columns = ["Insights", "Learnings", "For_Improvement"]
 
-## Installation
+    # Combine positive feedback (Insights + Learnings)
+    positive_feedback = qual_cols["Insights"].dropna().tolist() + qual_cols["Learnings"].dropna().tolist()
+    improvement_feedback = qual_cols["For_Improvement"].dropna().tolist()
 
-1. Clone or download this repository.
-2. Install dependencies:
-   ```bash
-   pip install streamlit pandas scikit-learn
-   ```
-3. Save the script as `streamlit_training_feedback_app.py`.
+    # Preprocess
+    positive_feedback_clean = [preprocess_text(x) for x in positive_feedback if x not in ["none", "n/a", ""]]
+    improvement_feedback_clean = [preprocess_text(x) for x in improvement_feedback if x not in ["none", "n/a", ""]]
 
----
+    # Count most common phrases/words
+    positive_counter = Counter(positive_feedback_clean)
+    improvement_counter = Counter(improvement_feedback_clean)
 
-## Usage
+    st.subheader("✅ Positive Feedback (Prevailing Responses)")
+    if positive_feedback_clean:
+        for item, count in positive_counter.most_common(10):
+            st.write(f"- {item} ({count} mentions)")
+    else:
+        st.write("No positive feedback provided.")
 
-Run the app with:
-```bash
-streamlit run streamlit_training_feedback_app.py
-```
-
-Steps inside the app:
-1. Upload your CSV/XLSX file in the sidebar.
-2. Map dataset columns to the guiding questions:
-   - Select a column for **What went well** responses.
-   - Select a column for **What can be improved** responses.
-3. Adjust settings for number of themes and examples.
-4. View bullet-style summaries.
-5. Download the summary as TXT or CSV.
-
----
-
-## Example Dataset Columns
-- `Q14_Learnings` → What went well
-- `Q15_For improvement` → What can be improved
-
----
-
-## Notes
-- The app uses TF-IDF to extract the most important keywords and phrases.
-- Representative examples are displayed for each theme.
-- Long responses are truncated to keep summaries concise.
-
----
-
-## Export Options
-- **TXT**: A plain-text summary.
-- **CSV**: Each summary line in a CSV row.
-
----
-
-## License
-This project is open-source and free to use for educational and organizational purposes.
+    st.subheader("⚠️ Areas for Improvement (Prevailing Responses)")
+    if improvement_feedback_clean:
+        for item, count in improvement_counter.most_common(10):
+            st.write(f"- {item} ({count} mentions)")
+    else:
+        st.write("No improvement feedback provided.")
